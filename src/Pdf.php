@@ -30,23 +30,10 @@ class Pdf
 
     protected $compressionQuality;
 
-    protected $disk = null;
-
-    protected $isUsingStorage = false;
-
-    protected $storageInstance = null;
-
-    public function __construct(string $pdfFile, $disk = null)
+    public function __construct(string $pdfFile)
     {
         if (!filter_var($this->pdfFile, FILTER_VALIDATE_URL) && !file_exists($pdfFile)) {
             throw new PdfDoesNotExist("File `{$pdfFile}` does not exist");
-        }
-
-        // Resolve disk to be used
-        if (!is_null($disk)) {
-            $this->disk = $disk;
-            $this->resolveStorageInstance();
-            $this->isUsingStorage = true;
         }
 
         $this->imagick = new Imagick();
@@ -140,11 +127,7 @@ class Pdf
 
         $imageData = $this->getImageData($pathToImage);
 
-        dd($imageData);
-
-        return true;
-
-        // return file_put_contents($pathToImage, $imageData) !== false;
+        return file_put_contents($pathToImage, $imageData) !== false;
     }
 
     public function saveAllPagesAsImages(string $directory, string $prefix = ''): array
