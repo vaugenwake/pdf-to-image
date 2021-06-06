@@ -40,12 +40,5 @@
     },
     "scripts": {
         "test": "phpunit"
-    },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Spatie\\PdfToImage\\PdfServiceProvider"
-            ]
-        }
     }
 }
