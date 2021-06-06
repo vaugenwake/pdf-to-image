@@ -2,6 +2,7 @@
 
 namespace Spatie\PdfToImage;
 
+use Illuminate\Support\Facades\Storage;
 use Imagick;
 use Spatie\PdfToImage\Exceptions\InvalidFormat;
 use Spatie\PdfToImage\Exceptions\PageDoesNotExist;
@@ -29,19 +30,43 @@ class Pdf
 
     protected $compressionQuality;
 
-    public function __construct(string $pdfFile)
+    protected $disk = null;
+
+    protected $storageInstance = null;
+
+    public function __construct(string $pdfFile, $disk = null)
     {
-        if (! file_exists($pdfFile)) {
+        if (!file_exists($pdfFile)) {
             throw new PdfDoesNotExist("File `{$pdfFile}` does not exist");
         }
 
+        // Resolve disk to be used
+        if (!is_null($disk)) {
+            $this->disk = $disk;
+            $this->resolveStorageInstance();
+        }
+
         $this->imagick = new Imagick();
+
+        // Before getting the file check if it needs to be fetched but storage/remote location
+        if ($this->disk != null) {
+            $pdfFile = $this->storageInstance->url($pdfFile);
+        }
 
         $this->imagick->pingImage($pdfFile);
 
         $this->numberOfPages = $this->imagick->getNumberImages();
 
         $this->pdfFile = $pdfFile;
+    }
+
+    protected function resolveStorageInstance(): Storage
+    {
+        if ($this->storageInstance == null) {
+            $this->storageInstance = Storage::disk($this->disk);
+        }
+
+        return $this->storageInstance;
     }
 
     public function setResolution(int $resolution)
@@ -53,7 +78,7 @@ class Pdf
 
     public function setOutputFormat(string $outputFormat)
     {
-        if (! $this->isValidOutputFormat($outputFormat)) {
+        if (!$this->isValidOutputFormat($outputFormat)) {
             throw new InvalidFormat("Format {$outputFormat} is not supported");
         }
 
@@ -112,7 +137,7 @@ class Pdf
     public function saveImage(string $pathToImage): bool
     {
         if (is_dir($pathToImage)) {
-            $pathToImage = rtrim($pathToImage, '\/').DIRECTORY_SEPARATOR.$this->page.'.'.$this->outputFormat;
+            $pathToImage = rtrim($pathToImage, '\/') . DIRECTORY_SEPARATOR . $this->page . '.' . $this->outputFormat;
         }
 
         $imageData = $this->getImageData($pathToImage);
@@ -211,7 +236,7 @@ class Pdf
 
         $outputFormat = strtolower($outputFormat);
 
-        if (! $this->isValidOutputFormat($outputFormat)) {
+        if (!$this->isValidOutputFormat($outputFormat)) {
             $outputFormat = 'jpg';
         }
 
