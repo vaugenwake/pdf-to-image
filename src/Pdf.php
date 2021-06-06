@@ -38,7 +38,7 @@ class Pdf
 
     public function __construct(string $pdfFile, $disk = null)
     {
-        if (!filter_var($this->pdfFile, FILTER_VALIDATE_URL) || !file_exists($pdfFile)) {
+        if (!filter_var($this->pdfFile, FILTER_VALIDATE_URL) && !file_exists($pdfFile)) {
             throw new PdfDoesNotExist("File `{$pdfFile}` does not exist");
         }
 
