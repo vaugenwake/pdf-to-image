@@ -51,11 +51,6 @@ class Pdf
 
         $this->imagick = new Imagick();
 
-        // Before getting the file check if it needs to be fetched but storage/remote location
-        if ($this->disk != null) {
-            $pdfFile = $this->storageInstance->url($pdfFile);
-        }
-
         $this->imagick->pingImage($pdfFile);
 
         $this->numberOfPages = $this->imagick->getNumberImages();
